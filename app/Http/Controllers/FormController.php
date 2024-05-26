@@ -26,10 +26,10 @@ class FormController extends Controller
     
             if($sql == true){
                 echo"ALUMNO REGISTRADO CORRECTAMENTE";
-                return back()->with("Alumno registrado correctamente!!");
+                return back()->with("Agregado","Alumno registrado correctamente!!");
             }else{
                 echo"ERROR!!";
-                return back()->with("Hubo un error!!");
+                return back()->with("Incorrecto","Hubo un error!!");
             }
       
        

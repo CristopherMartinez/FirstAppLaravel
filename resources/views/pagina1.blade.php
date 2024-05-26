@@ -29,6 +29,9 @@
             <br>
 
             <!--Show message-->
+            <!-- @if (session("correcto"))
+                <div class="alert alert-success">{{ session("correcto") }}</div>
+            @endif -->
 
 
 

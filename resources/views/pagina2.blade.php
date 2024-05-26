@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página 2</title>
+    <title>Listado Alumnos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body class="container">
     <div class="titleListAlum">Lista de alumnos</div>
-
         <table class="table">
-
             <thead>
                 <tr>
                 <th scope="col">#</th>
@@ -22,19 +20,17 @@
             </thead>
 
             <tbody>
-                
-                <tr>
-                    <th scope="row">1</th>
-                    <td>Cristopher</td>
-                    <td>Martinez</td>
-                    <td>23</td>
-                    <td>actions</td>
-                </tr>
+                @foreach($alumnos as $alumno)
+                    <tr>
+                        <td>{{ $alumno->id }}</td>
+                        <td>{{ $alumno->name }}</td>
+                        <td>{{ $alumno->lastname }}</td>
+                        <td>{{ $alumno->age }}</td>
+                        <td>Actions</td>
+                    </tr>
+                @endforeach
             </tbody>
-       
         </table>
-
-
     <a href="{{ url('/')}}">Regresar a página principal</a>
     
 </body>
