@@ -10,9 +10,19 @@
     <body class="mprincipal">
         <div class="container">
             <div class="titleColor">
-                <h1>{{ $title }}</h1>
-                <h1>CRUD con LARAVEL,PHP y Bootstrap</h1>
+                <h1>{{ $textTitles[0] }}</h1>
+                <h1>{{ $textTitles[1] }}</h1>
             </div>
+            
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <!--Form to add a new Student-->
             <form action="{{route('crud.create')}}"  method="post">
@@ -36,7 +46,9 @@
 
 
             <br>
-            <a href="{{ url('/pagina2') }}" class="linkRegistros">Registros</a>
+            <a href="{{ url('/pagina2') }}" class="links">Registros</a>
+            <br>
+            <a href="{{ url('/login') }}" class="links">Login</a>
 
 
         </div>
@@ -57,7 +69,7 @@
     .titleColor{
         color: green;
     }
-    .linkRegistros{
+    .links{
         /* text-decoration: none; */
         color: blue;
         font-size: 20px;
