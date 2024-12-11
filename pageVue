@@ -1,0 +1,903 @@
+<template>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <h2>Recepción productos (factura)</h2>
+        <!-- <br />
+        <div class="row">
+          <span>
+            <label for=""
+              >Marca el checkbox si agregarás más de 1 producto en la
+              factura</label
+            >
+          </span>
+          <span>
+            <input
+              ref="checkInvoice"
+              type="checkbox"
+              class="form-check-input"
+              style="margin-left: 10px"
+            />
+          </span>
+        </div>
+        <br /> -->
+        <!--Formulario para factura con 1 producto-->
+        <div class="row" hidden>
+          <!--Comentado momentariamente-->
+          <div class="col">
+            <label for="" style="color: red"
+              >Los campos con * son obligatorios</label
+            >
+
+            <form @submit.prevent="sendInvoice()">
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <h4>Datos generales</h4>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels">Proveedor *</label>
+                  <select
+                    ref="proveedor"
+                    class="custom-select"
+                    v-model="invoice.invoice_nombre_proveedor"
+                  >
+                    <option value="" disabled>Selecciona un proveedor</option>
+                    <option
+                      v-for="provider in providers"
+                      :key="provider.name"
+                      :value="provider.name"
+                      required
+                    >
+                      {{ provider.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Folio identificador factura *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice.invoice_folio_factura_proveedor"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels"
+                    >Fecha * (expedición,certificación,emisión)</label
+                  >
+                  <input
+                    class="form-control"
+                    type="date"
+                    v-model="invoice.invoice_fecha_emision"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <h4>Productos de factura</h4>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label class="boldTitleLabels"
+                    >Nombre del producto <span>*</span></label
+                  >
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice.productos.product_nombre"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-8 space">
+                  <label for="product_descripcion"
+                    >Descripción del producto *</label
+                  >
+                  <textarea
+                    id="product_descripcion"
+                    class="form-control"
+                    v-model="invoice.productos.product_descripcion"
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels"
+                    >Cantidad de productos*</label
+                  >
+                  <input
+                    ref="inputCantidad"
+                    class="form-control"
+                    type="number"
+                    v-model.number="invoice.productos.product_cantidad"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Precio *</label>
+                  <input
+                    ref="inputPrecio"
+                    class="form-control"
+                    type="number"
+                    step="0.001"
+                    v-model.number="invoice.productos.product_precio"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="total" class="boldTitleLabels"
+                    >Total (cantidad * precio)</label
+                  >
+                  <input
+                    id="total"
+                    :value="total"
+                    class="form-control"
+                    type="number"
+                    readonly
+                  />
+                </div>
+                <!-- <div class="col-12 col-sm-12 col-md-12 col-lg-3 space">
+                                    <label for="calculoIva" class="boldTitleLabels">IVA</label>
+                                    <input id="calculoIva"  class="form-control" type="number" readonly>
+                                </div> -->
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Número de serie *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice.productos.product_ns"
+                    required
+                  />
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">No. de parte *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice.productos.product_num_parte"
+                    required
+                  />
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Garantía *</label>
+                  <!-- <select class="custom-select" required>
+                                        <option v-for="tiempo in tiemposGarantias" :key="tiempo.id" :value="tiempo.id">
+                                        {{ tiempo }}
+                                        </option>
+                                    </select> -->
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice.productos.product_garantia"
+                  />
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Código SAT *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    maxlength="8"
+                    v-model="invoice.productos.product_codigo_sat"
+                    required
+                  />
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Método de pago *</label>
+                  <select
+                    v-model="invoice.invoice_tipo_pago"
+                    class="custom-select"
+                    required
+                  >
+                    <option value="" disabled>
+                      Selecciona un método de pago
+                    </option>
+                    <option
+                      value="Efectivo"
+                      v-for="tipo in paymentTypes"
+                      :key="tipo.name"
+                      :value="tipo.name"
+                    >
+                      {{ tipo.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Cargo por maniobra</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    v-model.number="invoice.invoice_cargo_por_maniobra"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+
+              <!-- <div class="row space">
+
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                                    <label for="">Total neto</label>
+                                    <input id="" class="form-control" type="number" step="0.001" v-model.number="invoice.productos.product_total_neto"> 
+                                </div>
+
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                                    <label for="">Total mínimo 1.10</label>
+                                    <input id="" class="form-control" type="number" step="0.001" v-model.number="invoice.productos.product_minimo">
+                                </div>
+
+                            </div> -->
+
+              <div class="row space">
+                <div class="col d-flex justify-content-end">
+                  <span>
+                    <button
+                      ref="btnSaveInvoice"
+                      class="btn btn-success"
+                      type="submit"
+                    >
+                      Guardar factura
+                    </button>
+                  </span>
+                  <span style="margin-left: 10px">
+                    <button class="btn btn-info" type="button">
+                      Limpiar fomulario
+                    </button>
+                  </span>
+                </div>
+              </div>
+              <br />
+            </form>
+          </div>
+        </div>
+
+        <!--Formulario para factura con mas de un producto-->
+        <div class="row">
+          <div class="col">
+            <label for="" style="color: red"
+              >Los campos con * son obligatorios</label
+            >
+            <br />
+            <label for="" style="color: red"
+              >El botón para guardar factura se mostrará cuando se agregue al
+              menos 1 producto a la factura</label
+            >
+
+            <form @submit.prevent="sendInvoice2()">
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 space">
+                  <h4>Formulario para factura con más de 1 producto</h4>
+                </div>
+              </div>
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <h4>Datos generales</h4>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels">Proveedor *</label>
+                  <select
+                    ref="selectProveedor2"
+                    class="custom-select"
+                    v-model="invoice2.invoice2_nombre_proveedor"
+                  >
+                    <option value="" disabled>Selecciona un proveedor</option>
+                    <option
+                      v-for="provider in providers"
+                      :key="provider.name"
+                      :value="provider.name"
+                      required
+                    >
+                      {{ provider.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Folio identificador factura *</label>
+                  <input
+                    ref="folioIdentificador2"
+                    class="form-control"
+                    type="text"
+                    v-model="invoice2.invoice2_folio_factura_proveedor"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels"
+                    >Fecha * (expedición,certificación,emisión)</label
+                  >
+                  <input
+                    class="form-control"
+                    type="date"
+                    v-model="invoice2.invoice2_fecha_emision"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <h4>Productos de factura</h4>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label class="boldTitleLabels"
+                    >Nombre del producto <span>*</span></label
+                  >
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice2.productos2.product_nombre2"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-8 space">
+                  <label for="product_descripcion"
+                    >Descripción del producto *</label
+                  >
+                  <textarea
+                    class="form-control"
+                    v-model="invoice2.productos2.product_descripcion2"
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="" class="boldTitleLabels"
+                    >Cantidad de productos*</label
+                  >
+                  <input
+                    class="form-control"
+                    type="number"
+                    v-model.number="invoice2.productos2.product_cantidad2"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Precio *</label>
+                  <input
+                    class="form-control"
+                    type="number"
+                    step="0.001"
+                    v-model.number="invoice2.productos2.product_precio2"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="total2" class="boldTitleLabels"
+                    >Total (cantidad * precio)</label
+                  >
+                  <input
+                    id="total2"
+                    :value="total2"
+                    class="form-control"
+                    type="number"
+                    readonly
+                  />
+                </div>
+                <!-- <div class="col-12 col-sm-12 col-md-12 col-lg-3 space">
+                                    <label for="calculoIva" class="boldTitleLabels">IVA</label>
+                                    <input id="calculoIva"  class="form-control" type="number" readonly>
+                                </div> -->
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Número de serie *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice2.productos2.product_ns2"
+                    required
+                  />
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">No. de parte *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice2.productos2.product_num_parte2"
+                    required
+                  />
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Garantía *</label>
+                  <!-- <select class="custom-select" required>
+                                        <option v-for="tiempo in tiemposGarantias" :key="tiempo.id" :value="tiempo.id">
+                                        {{ tiempo }}
+                                        </option>
+                                    </select> -->
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="invoice2.productos2.product_garantia2"
+                    style="text-transform: uppercase"
+                  />
+                </div>
+              </div>
+
+              <div class="row space">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Código SAT *</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    maxlength="8"
+                    v-model.number="invoice2.productos2.product_codigo_sat2"
+                    required
+                  />
+                </div>
+
+                <!-- <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                                    <label for="">Método de pago *</label>
+                                    <select class="custom-select" v-model="invoice2.invoice2_tipo_pago" required>
+                                        <option value="" disabled>Selecciona un método de pago</option>
+                                        <option value="Efectivo" v-for="tipo in paymentTypes" :key="tipo.name" :value="tipo.name">
+                                            {{ tipo.name }}
+                                        </option>
+                                    </select>
+                                </div> -->
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                  <label for="">Cargo por maniobra</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    class="form-control"
+                    v-model.number="invoice2.invoice2_cargo_por_maniobra"
+                  />
+                </div>
+              </div>
+
+              <!-- <div class="row space">
+
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                                    <label for="">Total neto</label>
+                                    <input id="" class="form-control" type="number" step="0.001" v-model.number="invoice.productos.product_total_neto"> 
+                                </div>
+
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 space">
+                                    <label for="">Total mínimo 1.10</label>
+                                    <input id="" class="form-control" type="number" step="0.001" v-model.number="invoice.productos.product_minimo">
+                                </div>
+
+                            </div> -->
+
+              <div class="row space">
+                <div class="col d-flex justify-content-end">
+                  <span>
+                    <button
+                      class="btn btn-warning"
+                      type="button"
+                      @click="addProduct2()"
+                    >
+                      Agregar producto
+                    </button>
+                  </span>
+                  <span style="margin-left: 10px">
+                    <button
+                      class="btn btn-info"
+                      type="button"
+                      @click="cleanFormAll2()"
+                    >
+                      Limpiar fomulario
+                    </button>
+                  </span>
+                  <span
+                    style="margin-left: 10px"
+                    v-if="invoice2.productos2.length > 0"
+                  >
+                    <button class="btn btn-success" type="submit">
+                      Guardar factura
+                    </button>
+                  </span>
+                </div>
+              </div>
+              <br />
+            </form>
+          </div>
+        </div>
+
+        <!--Tabla para mostrar productos agregados a la factura cuando tiene mas de 1 producto-->
+        <div v-if="invoice2.productos2.length > 0" class="row">
+          <div class="col-12 col-sm-12 col-md-12 col-lg-12 text-center">
+            <h4>Productos agregados a la factura</h4>
+          </div>
+          <div class="col-12 col-sm-12 col-md-12 col-lg-12">
+            <table class="table">
+              <thead>
+                <th>#</th>
+                <th>Nombre del producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Garantia</th>
+              </thead>
+              <tbody
+                v-for="(producto, index) in invoice2.productos2"
+                :key="producto.id"
+              >
+                <td>{{ index + 1 }}</td>
+                <td>{{ producto.product_nombre2 }}</td>
+                <td>{{ producto.product_cantidad2 }}</td>
+                <td>{{ producto.product_precio2 }}</td>
+                <td>{{ producto.product_garantia2 }}</td>
+              </tbody>
+            </table>
+          </div>
+          <div
+            v-if="invoice2.productos2.length > 0"
+            class="col d-flex justify-content-end"
+            style="margin-bottom: 10px"
+          >
+            <button class="btn btn-danger" @click="cleanProducts2()">
+              Borrar productos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+.space {
+  margin-top: 5px;
+}
+</style>
+
+<script>
+import Swal from "sweetalert2";
+import { ref } from "vue";
+
+export default {
+  data() {
+    return {
+      providers: [],
+      paymentTypes: [
+        { id: 1, name: "Efectivo" },
+        { id: 1, name: "Transferencia" },
+        { id: 1, name: "Cheque" },
+      ],
+      invoice: {
+        invoice_folio_factura_proveedor: "",
+        invoice_nombre_proveedor: "",
+        invoice_fecha_emision: "",
+        invoice_tipo_pago: "", //string backend tipo enum
+        invoice_totalNeto_Factura: 0.0, //Despues de iva sumando todos los productos
+        invoice_cargo_por_maniobra: 0.0,
+        productos: [
+          // {
+          //     id: 0,
+          //     product_nombre:'',
+          //     product_cantidad: 0,
+          //     product_descripcion: '',
+          //     product_ns:'',
+          //     product_num_parte: '',
+          //     product_garantia: '', //Validar que tipo de dato
+          //     product_precio:0.00,
+          //     product_total: 0.00,
+          //     product_minimo: 0.00,
+          //     product_codigo_sat: 0,
+          //     product_total_neto: 0.00,
+          // },
+        ],
+      },
+      //Factura con mas de 1 producto
+      invoice2: {
+        invoice2_folio_factura_proveedor: "",
+        invoice2_nombre_proveedor: "",
+        invoice2_fecha_emision: "",
+        invoice2_tipo_pago: "", //string backend tipo enum
+        invoice2_totalNeto_Factura: 0.0, //Despues de iva sumando todos los productos
+        invoice2_cargo_por_maniobra: 0.0,
+        productos2: [
+          //   {
+          //     id: 0,
+          //     product_nombre2:'',
+          //     product_cantidad2: 0,
+          //     product_descripcion2: '',
+          //     product_ns2:'',
+          //     product_num_parte2: '',
+          //     product_garantia2: '', //Validar que tipo de dato
+          //     product_precio2:0.00,
+          //     product_total2: 0.00,
+          //     product_minimo2: 0.00,
+          //     product_codigo_sat2: 0,
+          //     product_total_neto2: 0.00,
+          // },
+        ],
+      },
+    };
+  },
+  // mounted() {
+  //   this.$store.commit("setErrors", {});
+  // },
+  created() {
+    this.getProviders();
+  },
+  methods: {
+    //En ves de que sean dos formularios, podria ser 1 solo
+
+    //Get providers
+    // async getProviders() {
+    //   await axios
+    //     .get(`/admin/providers/ver`)
+    //     .then((response) => {
+    //       this.providers = response.data.data;
+    //     })
+    //     .catch((e) => {
+    //       this.$store.commit("setErrors", e);
+    //     });
+    // },
+    //Test
+    getProviders() {
+      let proveedores = [
+        { id: 1, name: "TVC" },
+        { id: 1, name: "CVT" },
+        { id: 1, name: "Mercado libre" },
+      ];
+      this.providers = proveedores;
+    },
+
+    sendInvoice() {
+      this.addProduct();
+
+      // if (this.invoice.productos.length > 0) {
+      //   axios
+      //     .post(`/admin/save-factura`, this.invoice)
+      //     .then((response) => {
+      //       if (response.data.message == "success") {
+      //         this.openModalSuccess(
+      //           "Factura",
+      //           "Factura guardada correctamente",
+      //           "success"
+      //         );
+      //         this.cleanForm();
+      //       } else {
+      //         this.openModalWarning(
+      //           "Factura",
+      //           "Hubo un error al guardar",
+      //           "warning",
+      //           response.data.data
+      //         );
+      //         return;
+      //       }
+      //     })
+      //     .catch((e) => {
+      //       this.$store.commit("setErrors", e);
+      //     });
+      // }
+      // console.log(this.invoice);
+    },
+    //Enviar factura con mas de un producto
+    sendInvoice2() {
+      //Validar todo el formulario desde aqui, no ocupar required
+
+      // if(this.invoice.productos.length > 0){
+      //     axios
+      //     .post(`/admin/save-factura`,this.invoice) //Cambiar ruta
+      //     .then(response => {
+
+      //         if(response.data.message == 'success'){
+
+      //             this.openModalSuccess('Factura', 'Factura guardada correctamente', 'success');
+      //             this.cleanForm();
+      //         }else{
+
+      //             this.openModalWarning('Factura', 'Hubo un error al guardar', 'warning', response.data.data);
+      //             return;
+
+      //         }
+
+      //     })
+      //     .catch((e) => {
+      //         this.$store.commit("setErrors", e);
+      //     });
+      // }
+      this.openModalSuccess(
+        "Factura",
+        "Factura guardada correctamente",
+        "success"
+      );
+      this.cleanFormAll2();
+      this.cleanProducts2();
+      console.log(this.invoice2);
+    },
+    //Agregar producto factura con 1 solo producto
+    addProduct() {
+      //Completar validaciones
+      // if( this.invoice.invoice_folio_factura_proveedor != "" &&
+      //     this.invoice.invoice_nombre_proveedor != "" &&
+      //     this.invoice.invoice_fecha_emision != "" &&
+      //     this.invoice.invoice_tipo_pago != "" &&
+      //     this.invoice.invoice_totalNeto_Factura != "" &&
+      //     this.invoice.productos.product_nombre != ""
+      // ){
+      var product = {
+        id: this.invoice.productos.length + 1,
+        product_nombre: this.invoice.productos.product_nombre,
+        product_cantidad: this.invoice.productos.product_cantidad,
+        product_descripcion: this.invoice.productos.product_descripcion,
+        product_ns: this.invoice.productos.product_ns,
+        product_num_parte: this.invoice.productos.product_num_parte,
+        product_garantia: this.invoice.productos.product_garantia,
+        product_precio: this.invoice.productos.product_precio,
+        product_total:
+          this.invoice.productos.product_precio *
+          this.invoice.productos.product_cantidad,
+        product_minimo: this.invoice.productos.product_minimo,
+        product_codigo_sat: this.invoice.productos.product_codigo_sat,
+        product_total_neto: this.invoice.productos.product_total_neto,
+      };
+      this.invoice.productos.push(product);
+      // }
+    },
+    //Factura con 1 solo producto
+    cleanForm() {
+      this.invoice.productos.product_nombre = "";
+      this.invoice.productos.product_descripcion = "";
+      this.invoice.productos.product_cantidad = "";
+      this.invoice.productos.product_precio = "";
+      this.invoice.productos.product_total = "";
+      this.invoice.invoice_nombre_proveedor = "";
+      this.invoice.invoice_folio_factura_proveedor = "";
+      this.invoice.invoice_fecha_emision = "";
+      this.invoce.productos.product_num_parte = "";
+      this.invoice.productos.product_ns = "";
+    },
+    //Borrar unicamente los datos del producto y dejar los datos generales
+    //Para que cada que demos click en agregar producto se queden los datos generales
+    //y solo vayamos agregando productos
+    cleanForm2() {
+      this.invoice2.productos2.product_nombre2 = "";
+      this.invoice2.productos2.product_descripcion2 = "";
+      this.invoice2.productos2.product_cantidad2 = "";
+      this.invoice2.productos2.product_precio2 = "";
+      this.invoice2.productos2.product_total2 = "";
+      this.invoice2.productos2.product_ns2 = "";
+      this.invoice2.productos2.product_num_parte2 = "";
+      this.invoice2.productos2.product_garantia2 = "";
+      this.invoice2.invoice2_tipo_pago = "";
+      this.invoice2.invoice2_cargo_por_maniobra = "";
+      this.invoice2.productos2.product_codigo_sat2 = "";
+    },
+    //Borrar todo el formulario para limpiarlo
+    cleanFormAll2() {
+      this.invoice2.invoice2_folio_factura_proveedor = "";
+      this.invoice2.invoice2_nombre_proveedor = "";
+      this.invoice2.invoice2_fecha_emision = "";
+      this.invoice2.productos2.product_nombre2 = "";
+      this.invoice2.productos2.product_descripcion2 = "";
+      this.invoice2.productos2.product_cantidad2 = "";
+      this.invoice2.productos2.product_precio2 = "";
+      this.invoice2.productos2.product_total2 = "";
+      this.invoice2.productos2.product_ns2 = "";
+      this.invoice2.productos2.product_num_parte2 = "";
+      this.invoice2.productos2.product_garantia2 = "";
+      this.invoice2.invoice2_tipo_pago = "";
+      this.invoice2.invoice2_cargo_por_maniobra = "";
+      this.invoice2.productos2.product_codigo_sat2 = "";
+    },
+    //Empty the list of the products
+    cleanProducts() {
+      this.invoice.productos = [];
+    },
+    cleanProducts2() {
+      this.invoice2.productos2 = [];
+    },
+    //Agregar productos al arreglo de productos cuando tiene mas de 1 producto
+    addProduct2() {
+      //Validacion datos generales factura
+      if (
+        (this.invoice2.invoice2_folio_factura_proveedor != "" ||
+          this.invoice2.invoice2_folio_factura_proveedor == null) &&
+        (this.invoice2.invoice2_nombre_proveedor != "" ||
+          this.invoice2.invoice2_nombre_proveedor == null) &&
+        (this.invoice2.invoice2_fecha_emision != "" ||
+          this.invoice2.invoice2_fecha_emision == null)
+        //Validacion de productos de factura
+        // (this.invoice2.productos2.product_nombre2 != "" || this.invoice2.productos2.product_nombre2 == null) &&
+        // (this.invoice2.productos2.product_descripcion2 != "" || this.invoice2.productos2.product_descripcion2 == null) &&
+        // (this.invoice2.productos2.product_cantidad2 != "" || this.invoice2.productos2.product_cantidad2 == null)
+      ) {
+        var product = {
+          id: this.invoice2.productos2.length + 1,
+          product_nombre2: this.invoice2.productos2.product_nombre2,
+          product_descripcion2: this.invoice2.productos2.product_descripcion2,
+          product_cantidad2: this.invoice2.productos2.product_cantidad2,
+          product_precio2: this.invoice2.productos2.product_precio2,
+          product_total2:
+            this.invoice2.productos2.product_precio2 *
+            this.invoice2.productos2.product_cantidad2,
+          // product_ns2: this.invoice2.productos2.product_ns, //Verificar, ya que si tiene mas de 1 producto tendra mas de un numero de serie
+          product_num_parte2: this.invoice2.productos2.product_num_parte2,
+          product_garantia2: this.invoice2.productos2.product_garantia2,
+          product_codigo_sat2: this.invoice2.productos2.product_codigo_sat2,
+          //product_total_neto2: this.invoice2.productos2.product_total_neto,
+          //product_minimo2: this.invoice2.productos2.product_minimo2,
+        };
+        this.invoice2.productos2.push(product);
+        this.openModalSuccess(
+          "Producto",
+          "Producto agregado correctamente",
+          "success"
+        );
+
+        this.cleanForm2();
+
+        console.log(this.invoice2);
+      } else {
+        this.openModalWarning2(
+          "Información",
+          "Faltan campos por llenar",
+          "warning"
+        );
+      }
+    },
+    openModalSuccess(titleModal, textModal, iconModal) {
+      Swal.fire({
+        title: titleModal,
+        text: textModal,
+        icon: iconModal,
+      });
+    },
+    openModalWarning(titleModal, textModal, iconModal, htmlModal) {
+      Swal.fire({
+        title: titleModal,
+        text: textModal,
+        icon: iconModal,
+        html: htmlModal,
+        confirmButtonText: "OK",
+      });
+    },
+    openModalWarning2(titleModal, textModal, iconModal) {
+      Swal.fire({
+        title: titleModal,
+        text: textModal,
+        icon: iconModal,
+      });
+    },
+    onChangeCantidadProductos() {},
+  },
+  computed: {
+    //Cantidad * precio
+    total() {
+      return (
+        this.invoice.productos.product_precio *
+        this.invoice.productos.product_cantidad
+      );
+    },
+    total2() {
+      return (
+        this.invoice2.productos2.product_precio2 *
+        this.invoice2.productos2.product_cantidad2
+      );
+    },
+  },
+  components: {},
+};
+</script>
